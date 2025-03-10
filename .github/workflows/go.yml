@@ -34,7 +34,7 @@ jobs:
         go build -v .
         javac reader.java
 
-    - name: Test
+    - name: Create and Read Index File
       run: |
         ./protoIndexFile
-        java ./reader
+        java reader
