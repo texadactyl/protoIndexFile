@@ -4,27 +4,45 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.Map;
 
 public class reader {
-    private static final String INDEX_FILE_PATH = "index.bin";
-    private static final String DATA_FILE_PATH = "data.bin";
+    private static final String INDEX_FILE_PATH = "saucisse.index";
+    private static final String DATA_FILE_PATH = "saucisse.data";
     private static final int ITEM_LENGTH = 32;
+    private static final int DETAIL_RCD_COUNT = 13;
 
     public static void main(String[] args) {
+    
         try {
             // Load index map.
             Map<Integer, Long> indexMap = loadindexMapAsBinary(INDEX_FILE_PATH);
-            System.out.println("Loaded index file: " + indexMap);
+            int numRecords = indexMap.size();
+            
+            System.out.printf("Loaded index file (%d): ", numRecords);
+            System.out.println(indexMap);
 
-            // Retrieve records based on record numbers
-            int[] recordNumbers = {0, 101, 2002, 347, 10001};
-            for (int recordNumber : recordNumbers) {
-                readDataByRecordNumber(DATA_FILE_PATH, indexMap, recordNumber);
+            // Retrieve record 0 (Begin Frame).
+            readDataByRecordNumber(DATA_FILE_PATH, indexMap, 0);
+            
+            // Retrieve DETAIL_RCD_COUNT records, selected randomly.
+            SecureRandom sr = new SecureRandom();
+            int randInt = 0;
+            for (int ix = 0; ix < DETAIL_RCD_COUNT; ix++) {
+                while (randInt == 0) {
+                    randInt = sr.nextInt(numRecords);
+                }
+                readDataByRecordNumber(DATA_FILE_PATH, indexMap, randInt);
+                randInt = 0;
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+            
+            // Retrieve the last record (End Frame).
+            readDataByRecordNumber(DATA_FILE_PATH, indexMap, numRecords - 1);
+            
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
     }
 
@@ -48,7 +66,7 @@ public class reader {
     private static void readDataByRecordNumber(String dataPath, Map<Integer, Long> indexMap, int recordNumber) {
         Long offset = indexMap.get(recordNumber);
         if (offset == null) {
-            System.out.println("Record number " + recordNumber + " not found in the index.");
+            System.out.printf("Record number %d not found in the index.\n", recordNumber);
             return;
         }
 
@@ -61,30 +79,30 @@ public class reader {
             switch (rid) {
                 case 'B': // Begin Frame
                     System.out.println("Begin Frame:");
-                    System.out.println("  Class: " + readFixedString(dataFile, ITEM_LENGTH));
-                    System.out.println("  Method: " + readFixedString(dataFile, ITEM_LENGTH));
-                    System.out.println("  Type: " + readFixedString(dataFile, ITEM_LENGTH));
+                    System.out.printf("  Class: %s\n", readFixedString(dataFile, ITEM_LENGTH));
+                    System.out.printf("  Method: %s\n", readFixedString(dataFile, ITEM_LENGTH));
+                    System.out.printf("  Type: %s\n", readFixedString(dataFile, ITEM_LENGTH));
                     break;
 
                 case 'I': // Integer Change
                     System.out.println("Integer Change:");
-                    System.out.println("  Old Value: " + readFixedString(dataFile, ITEM_LENGTH));
-                    System.out.println("  New Value: " + readFixedString(dataFile, ITEM_LENGTH));
+                    System.out.printf("  Old Value: %s\n", readFixedString(dataFile, ITEM_LENGTH));
+                    System.out.printf("  New Value: %s\n", readFixedString(dataFile, ITEM_LENGTH));
                     break;
 
                 case 'E': // End Frame
                     System.out.println("End Frame:");
-                    System.out.println("  Class: " + readFixedString(dataFile, ITEM_LENGTH));
-                    System.out.println("  Method: " + readFixedString(dataFile, ITEM_LENGTH));
-                    System.out.println("  Type: " + readFixedString(dataFile, ITEM_LENGTH));
+                    System.out.printf("  Class: %s\n", readFixedString(dataFile, ITEM_LENGTH));
+                    System.out.printf("  Method: %s\n", readFixedString(dataFile, ITEM_LENGTH));
+                    System.out.printf("  Type: %s\n", readFixedString(dataFile, ITEM_LENGTH));
                     break;
 
                 default:
-                    System.out.println("Unknown record type: " + rid);
+                    System.out.printf("Unknown record type: %02x\n", rid);
                     break;
             }
         } catch (IOException e) {
-            System.out.println("Error reading record at offset " + offset + ": " + e.getMessage());
+            System.out.printf("Error reading data record %s at offset %d: ", recordNumber, offset, e.getMessage());
         }
     }
 

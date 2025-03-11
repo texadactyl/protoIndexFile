@@ -6,11 +6,11 @@ import (
 )
 
 // Data and its associated index file.
-const pathData = "./data.bin"
-const pathIndex = "./index.bin"
+const pathData = "saucisse.data"
+const pathIndex = "saucisse.index"
 
 // Number of records to write to the data file.
-const maxRecords = 10000
+const maxRecords = 100
 
 // Record types.
 const rtypeBeginFrame = 'B'
