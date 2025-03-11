@@ -13,36 +13,32 @@ public class reader {
     private static int ITEM_LENGTH = 32;
     private static int DETAIL_RCD_COUNT = 13;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
     
-        try {
-            // Load index map.
-            Map<Integer, Long> indexMap = loadindexMapAsBinary(INDEX_FILE_PATH);
-            int numRecords = indexMap.size();
-            
-            System.out.printf("Loaded index file (%d): ", numRecords);
-            System.out.println(indexMap);
+         // Load index map.
+        Map<Integer, Long> indexMap = loadindexMapAsBinary(INDEX_FILE_PATH);
+        int numRecords = indexMap.size();
+        
+        System.out.printf("Loaded index file (%d): ", numRecords);
+        System.out.println(indexMap);
 
-            // Retrieve record 0 (Begin Frame).
-            readDataByRecordNumber(DATA_FILE_PATH, indexMap, 0);
-            
-            // Retrieve DETAIL_RCD_COUNT records, selected randomly.
-            SecureRandom sr = new SecureRandom();
-            int randInt = 0;
-            for (int ix = 0; ix < DETAIL_RCD_COUNT; ix++) {
-                while (randInt == 0) {
-                    randInt = sr.nextInt(numRecords);
-                }
-                readDataByRecordNumber(DATA_FILE_PATH, indexMap, randInt);
-                randInt = 0;
+        // Retrieve record 0 (Begin Frame).
+        readDataByRecordNumber(DATA_FILE_PATH, indexMap, 0);
+        
+        // Retrieve DETAIL_RCD_COUNT records, selected randomly.
+        SecureRandom sr = new SecureRandom();
+        int randInt = 0;
+        for (int ix = 0; ix < DETAIL_RCD_COUNT; ix++) {
+            while (randInt == 0) {
+                randInt = sr.nextInt(numRecords);
             }
-            
-            // Retrieve the last record (End Frame).
-            readDataByRecordNumber(DATA_FILE_PATH, indexMap, numRecords - 1);
-            
-        } catch (Exception ex) {
-            ex.printStackTrace();
+            readDataByRecordNumber(DATA_FILE_PATH, indexMap, randInt);
+            randInt = 0;
         }
+        
+        // Retrieve the last record (End Frame).
+        readDataByRecordNumber(DATA_FILE_PATH, indexMap, numRecords - 1);
+            
     }
 
     // Read 4 bytes from an opened FileInputStream in Little Endian order and return an int to caller.
