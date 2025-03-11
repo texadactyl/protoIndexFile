@@ -1,4 +1,3 @@
-import java.io.DataInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -46,15 +45,46 @@ public class reader {
         }
     }
 
+    // Read 4 bytes from an opened FileInputStream in Little Endian order and return an int to caller.
+    private static int readIntLE(FileInputStream fis) throws IOException {
+        byte[] bytes = new byte[4];
+        int bytesRead = fis.read(bytes);
+        if (bytesRead < 4) {
+            throw new IOException("readIntLE: Unexpected end of file");
+        }       
+        return (bytes[0] & 0xFF) | 
+               ((bytes[1] & 0xFF) << 8) | 
+               ((bytes[2] & 0xFF) << 16) | 
+               ((bytes[3] & 0xFF) << 24);
+    }
+
+    // Read 8 bytes from an opened FileInputStream in Little Endian order and return a long to caller.
+    public static long readLongLE(FileInputStream fis) throws IOException {
+        byte[] bytes = new byte[8];
+        int bytesRead = fis.read(bytes);
+        if (bytesRead < 8) {
+            throw new IOException("readLongLE: Unexpected end of file");
+        }
+        return (bytes[0] & 0xFFL) | 
+               ((bytes[1] & 0xFFL) << 8) | 
+               ((bytes[2] & 0xFFL) << 16) | 
+               ((bytes[3] & 0xFFL) << 24) | 
+               ((bytes[4] & 0xFFL) << 32) | 
+               ((bytes[5] & 0xFFL) << 40) | 
+               ((bytes[6] & 0xFFL) << 48) | 
+               ((bytes[7] & 0xFFL) << 56);
+    }
+
     // Load the index map from the specified index file path.
-    private static Map<Integer, Long> loadindexMapAsBinary(String filePath) throws IOException {
+    private static Map<Integer, Long> loadindexMapAsBinary(String indexFilePath) throws IOException {
+
         Map<Integer, Long> indexMap = new HashMap<>();
 
-        try (DataInputStream dis = new DataInputStream(new FileInputStream(filePath))) {
+        try (FileInputStream fis = new FileInputStream(indexFilePath)) {
             // Ensure the stream uses little-endian byte order
-            while (dis.available() >= 12) { // 4 bytes for key (int), 8 bytes for value (long)
-                int key = Integer.reverseBytes(dis.readInt());  // Convert to big-endian
-                long value = Long.reverseBytes(dis.readLong()); // Convert to big-endian
+            while (fis.available() >= 12) { // 4 bytes for key (int), 8 bytes for value (long)
+                int key = readIntLE(fis);                 
+                long value = readLongLE(fis);
                 indexMap.put(key, value);
             }
         }
