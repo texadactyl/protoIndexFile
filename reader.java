@@ -8,10 +8,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class reader {
-    private static final String INDEX_FILE_PATH = "saucisse.index";
-    private static final String DATA_FILE_PATH = "saucisse.data";
-    private static final int ITEM_LENGTH = 32;
-    private static final int DETAIL_RCD_COUNT = 13;
+    private static String INDEX_FILE_PATH = "saucisse.index";
+    private static String DATA_FILE_PATH = "saucisse.data";
+    private static int ITEM_LENGTH = 32;
+    private static int DETAIL_RCD_COUNT = 13;
 
     public static void main(String[] args) {
     
